@@ -4,9 +4,7 @@ Radar Screen Visualisation for Sharp HC-SR04
 Maps out an area of what the HC-SR04 sees from a top down view.
 Takes and displays 2 readings, one left to right and one right to left.
 Displays an average of the 2 readings
-Displays motion alert if there is a large difference between the 2 values.
 */
-
 
 import processing.serial.*;
  
@@ -15,7 +13,7 @@ int ANGLE_BOUNDS = 80;
 int ANGLE_STEP = 2;
 int HISTORY_SIZE = 10;
 int POINTS_HISTORY_SIZE = 500;
-int MAX_DISTANCE = 150;
+int MAX_DISTANCE = 50;
  
 int angle;
 int distance;
@@ -53,7 +51,7 @@ void setup() {
   historyY = new float[HISTORY_SIZE];
   points = new Point[POINTS_HISTORY_SIZE];
  
-  myPort = new Serial(this, "COM9", 9600);
+  myPort = new Serial(this, "COM11", 9600);
   myPort.bufferUntil('\n'); // Trigger a SerialEvent on new line
 }
  
@@ -63,39 +61,20 @@ void draw() {
 /* choose either bgcolor or bgimage */
   
   background(bgimage);
-  
- 
+
   drawRadar();
- 
   drawFoundObjects(angle, distance);
   drawRadarLine(angle);
-
-
-
-
 
  /* draw the grid lines on the radar every 30 degrees and write their values 180, 210, 240 etc.. */
   for (int i = 0; i <= 6; i++) {
     strokeWeight(1);
-    stroke(100);
+    stroke(0,255,0);
     line(radius, radius, radius + cos(radians(180+(30*i)))*SIDE_LENGTH/2, radius + sin(radians(180+(30*i)))*SIDE_LENGTH/2);
     fill(255, 255, 255);
     noStroke();
-    
     text(Integer.toString(0+(30*i)), radius + cos(radians(180+(30*i)))*SIDE_LENGTH/2, radius + sin(radians(180+(30*i)))*SIDE_LENGTH/2, 25, 50);
-    
-    if (30*i <= 300) {
-      text(Integer.toString(180+(30*i)), (radius+10) + cos(radians(180+(30*i)))*(SIDE_LENGTH+10), (radius+10) + sin(radians(180+(30*i)))*(SIDE_LENGTH+10), 25,50);
-    } else {
-      text(Integer.toString(180+(30*i)), radius + cos(radians(180+(30*i)))*SIDE_LENGTH, radius + sin(radians(180+(30*i)))*SIDE_LENGTH, 60,40);
-    }
   }
-
-
-
-
-
-
 
 /* Write information text and values. */
   noStroke();
@@ -126,8 +105,7 @@ else if (angle<0 & angle >-80)
   text("200 mm", 600, 120, 250, 50);
   
   text("250 mm", 600, 040, 250, 50);
-  
-  
+   
   noFill();
   rect(70,60,200,200);
   fill(0, 250, 0); 
@@ -141,16 +119,6 @@ else if (angle<0 & angle >-80)
   fill(0,170,0);
   rect(30,93,10,10);
   text("Close", 115, 110, 150, 50);
-  noFill();
-  stroke(150,0,0);
-  strokeWeight(1);
-  ellipse(29, 113, 10, 10); 
-  fill(150,0,0);
-  text("Motion", 115, 130, 150, 50);
-
-
-
-
 }
  
 void drawRadarLine(int angle) {
@@ -159,41 +127,33 @@ void drawRadarLine(int angle) {
   x = radius * sin(radian);
   y = radius * cos(radian);
  
- 
   float px = centerX + x;
   float py = centerY - y;
  
   historyX[0] = px;
   historyY[0] = py;
   
-  
-  
   int Degrees=0;
-
-if (angle>0 & angle <80)
-{
-  Degrees = angle+100;
-}
-else if (angle<0 & angle >-80)
-{
-  Degrees = angle+80;
-}
- 
-    
-    fill(18, 201, 49); 
+  if (angle>0 & angle <80)
+  {
+    Degrees = angle+100;
+  }
+  else if (angle<0 & angle >-80)
+  {
+    Degrees = angle+80;
+  }
+   
+   //get rgb color from http://www.rapidtables.com/web/color/RGB_Color.htm
+    fill(0, 153, 0); 
     
     float b = centerY;
     
     arc(centerX,centerY,SIDE_LENGTH, SIDE_LENGTH,radians(angle-100),radians(angle-90));
-    
-    
-    
-  
-  shiftHistoryArray();
+        
+    shiftHistoryArray();
 }
  
 void drawFoundObjects(int angle, int distance) {
- 
  
   if (distance > 0) {
     float radian = radians(angle);
@@ -222,36 +182,25 @@ void drawFoundObjects(int angle, int distance) {
       int colorAlfa = (int)map(i, 0, POINTS_HISTORY_SIZE, 20, 0);
       int size = (int)map(i, 0, POINTS_HISTORY_SIZE, 30, 5);
  
-      fill(255, 0, 0, colorAlfa);
+      fill(0, 255, 0, colorAlfa);
       noStroke();
       ellipse(x, y, size, size);
     }
     
-    
     fill(255, 0, 0);
   }
- 
   
  shiftPointsArray();
   
 }
  
 void drawRadar() {
-  stroke(100);
+  stroke(0,255,0);
   noFill();
- 
   // make 5 circle with 50mm each
   for (int i = 0; i <= (SIDE_LENGTH / 200); i++) {
     arc(centerX, centerY, 200 * i, 200 * i, leftAngleRad, rightAngleRad);
   }
- 
-  // ukazatele uhlu
-  /*for (int i = 0; i <= (ANGLE_BOUNDS*2/20); i++) {
-    float angle = -ANGLE_BOUNDS + i * 20; 
-    float radAngle = radians(angle);
-    line(centerX, centerY, centerX + radius*sin(radAngle), centerY - radius*cos(radAngle));
-  }*/
-  
 }                              
  
 void shiftHistoryArray() {
